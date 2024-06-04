@@ -6,7 +6,7 @@
 /*   By: iboukhss <iboukhss@student.42luxe...>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 10:28:20 by iboukhss          #+#    #+#             */
-/*   Updated: 2024/06/04 17:12:23 by iboukhss         ###   ########.fr       */
+/*   Updated: 2024/06/04 17:43:04 by iboukhss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 static void	init_buffer(t_buffer **buf)
 {
 	if (!*buf)
-		*buf = calloc(1, sizeof(**buf));
+		*buf = ft_calloc(1, sizeof(**buf));
 	if (*buf)
 	{
 		(*buf)->len = 0;
@@ -62,7 +62,7 @@ static void	get_line(t_buffer *buf)
 
 	if (!buf->err)
 	{
-		nl = memchr(buf->pos, '\n', buf->nbytes);
+		nl = ft_memchr(buf->pos, '\n', buf->nbytes);
 		if (!nl)
 			chunk_size = buf->nbytes;
 		else
@@ -72,7 +72,7 @@ static void	get_line(t_buffer *buf)
 		if (buf->err)
 			return ;
 		buf->line = tmp;
-		memcpy(buf->line + buf->len, buf->pos, chunk_size);
+		ft_memcpy(buf->line + buf->len, buf->pos, chunk_size);
 		buf->len += chunk_size;
 		buf->line[buf->len] = '\0';
 		buf->pos += chunk_size;
