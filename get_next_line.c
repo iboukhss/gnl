@@ -6,86 +6,100 @@
 /*   By: iboukhss <iboukhss@student.42luxe...>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 10:28:20 by iboukhss          #+#    #+#             */
-/*   Updated: 2024/06/04 13:15:34 by iboukhss         ###   ########.fr       */
+/*   Updated: 2024/06/04 17:12:23 by iboukhss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*get_next_line(int fd)
+/* Initialization routine
+ * Note: careful with double pointers
+ */
+static void	init_buffer(t_buffer **buf)
 {
-	static t_buffer	*buf;
-	char			*line = NULL;
-	size_t			len = 0;
-	char			*nl;
-	size_t			chunk_size;
+	if (!*buf)
+		*buf = calloc(1, sizeof(**buf));
+	if (*buf)
+	{
+		(*buf)->len = 0;
+		(*buf)->line = NULL;
+	}
+}
 
-	// sanity check, freeing buf is always fine
-	if (fd < 0 || BUFFER_SIZE <= 0)
+/* Cleanup routine
+ * Note: careful with double pointers
+ */
+static void	free_buffer(t_buffer **buf)
+{
+	free((*buf)->line);
+	(*buf)->line = NULL;
+	free(*buf);
+	*buf = NULL;
+}
+
+/* Read fd into buffer
+ * Note: repetitive error checking
+ */
+static void	read_buffer(t_buffer *buf, int fd)
+{
+	if (!buf->nbytes)
 	{
-		free(buf);
-		buf = NULL;
-		return (NULL);
+		buf->pos = buf->data;
+		buf->nbytes = read(fd, buf->pos, BUFFER_SIZE);
+		buf->err |= (!buf->nbytes && !buf->line);
+		buf->err |= (buf->nbytes == -1);
 	}
-	// happens only on the first call
-	if (!buf)
+}
+
+/* Allocate the line
+ * Note: lots of things going on, maybe refactor?
+ */
+static void	get_line(t_buffer *buf)
+{
+	char	*tmp;
+	char	*nl;
+	size_t	chunk_size;
+
+	if (!buf->err)
 	{
-		buf = calloc(1, sizeof(*buf));
-		if (!buf)
-			return (NULL);
-	}
-	while (true)
-	{
-		// all bytes were consumed
-		if (!buf->nbytes)
-		{
-			buf->nbytes = read(fd, buf->data, BUFFER_SIZE);
-			if (buf->nbytes == -1)
-			{
-				free(line);
-				free(buf);
-				buf = NULL;
-				return (NULL);
-			}
-			else if (buf->nbytes == 0)
-			{
-				if (!line)
-				{
-					free(buf);
-					buf = NULL;
-					return (NULL);
-				}
-				else
-				{
-					return (line);
-				}
-			}
-			buf->pos = buf->data;
-		}
-		// look for newline
 		nl = memchr(buf->pos, '\n', buf->nbytes);
 		if (!nl)
 			chunk_size = buf->nbytes;
 		else
 			chunk_size = nl - buf->pos + 1;
-		// create the line
-		char *newline = ft_realloc(line, len, len + chunk_size + 1);
-		if (!newline)
-		{
-			free(line);
-			free(buf);
-			buf = NULL;
-			return (NULL);
-		}
-		line = newline;
-		memcpy(line + len, buf->pos, chunk_size);
-		len += chunk_size;
-		line[len] = '\0';
-		// update positions before continuing
+		tmp = ft_realloc(buf->line, buf->len, buf->len + chunk_size + 1);
+		buf->err |= !tmp;
+		if (buf->err)
+			return ;
+		buf->line = tmp;
+		memcpy(buf->line + buf->len, buf->pos, chunk_size);
+		buf->len += chunk_size;
+		buf->line[buf->len] = '\0';
 		buf->pos += chunk_size;
 		buf->nbytes -= chunk_size;
-		if (nl)
-			return (line);
-		// keep going
 	}
+}
+
+/* Main function
+ * Note: careful about short-circuit evaluation
+ */
+char	*get_next_line(int fd)
+{
+	static t_buffer	*buf;
+
+	init_buffer(&buf);
+	if (!buf)
+		return (NULL);
+	buf->err |= (fd < 0 || BUFFER_SIZE <= 0);
+	while (!buf->err)
+	{
+		read_buffer(buf, fd);
+		if (!buf->err && !buf->nbytes)
+			return (buf->line);
+		get_line(buf);
+		if (!buf->err && buf->line[buf->len - 1] == '\n')
+			return (buf->line);
+	}
+	free_buffer(&buf);
+	return (NULL);
 }

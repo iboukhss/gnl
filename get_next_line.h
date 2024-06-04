@@ -6,7 +6,7 @@
 /*   By: iboukhss <iboukhss@student.42luxe...>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 10:28:48 by iboukhss          #+#    #+#             */
-/*   Updated: 2024/06/04 11:32:02 by iboukhss         ###   ########.fr       */
+/*   Updated: 2024/06/04 17:00:44 by iboukhss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,15 @@
 
 typedef struct s_buffer
 {
+	// buffer
 	char	data[BUFFER_SIZE];
 	char	*pos;
 	ssize_t	nbytes;
+	// line
+	char	*line;
+	size_t	len;
+	// sticky error flag
+	bool	err;
 }	t_buffer;
 
 char	*get_next_line(int fd);
