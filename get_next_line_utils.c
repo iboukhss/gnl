@@ -6,7 +6,7 @@
 /*   By: iboukhss <iboukhss@student.42luxe...>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 10:28:37 by iboukhss          #+#    #+#             */
-/*   Updated: 2024/06/04 17:50:25 by iboukhss         ###   ########.fr       */
+/*   Updated: 2024/06/05 09:54:08 by iboukhss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,5 @@ void	*ft_realloc(void *ptr, size_t old_size, size_t new_size)
 		return (new);
 	ft_memcpy(new, ptr, old_size);
 	free(ptr);
-	ptr = NULL;
 	return (new);
 }
